@@ -1,0 +1,12 @@
+from marshmallow import Schema, fields, validate
+
+class PaymentSchema(Schema):
+    driver_id = fields.Int(required=True)
+    amount = fields.Float(required=True)
+    currency = fields.Str(required=True, validate=validate.Length(equal=3))
+    status = fields.Str(validate=validate.OneOf(['pending', 'completed', 'failed']))
+
+class PaymentUpdateSchema(Schema):
+    amount = fields.Float()
+    currency = fields.Str(validate=validate.Length(equal=3))
+    status = fields.Str(validate=validate.OneOf(['pending', 'completed', 'failed']))
