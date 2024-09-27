@@ -4,8 +4,17 @@ from app.extensions import db
 from app.models import User, Request
 from flask_jwt_extended import create_access_token
 
+import pytest
+
 @pytest.fixture(scope='module')
 def test_client():
+    flask_app = create_app('testing')
+
+    with flask_app.test_client() as testing_client:
+        with flask_app.app_context():
+            db.create_all()
+            yield testing_client
+            db.drop_all()
     flask_app = create_app('testing')
 
     with flask_app.test_client() as testing_client:
@@ -58,6 +67,13 @@ def test_update_request(test_client, user):
     assert response.status_code == 200
     data = response.get_json()
     assert data['message'] == 'Request updated successfully'
+
+    # Test invalid status update
+    data = {
+        'status': 'invalid_status'
+    }
+    response = test_client.put(f'/requests/{req.id}', json=data, headers=headers)
+    assert response.status_code == 400
 
 def test_delete_request(test_client, user):
     req = Request(user_id=user.id, request_type='ride_request', details='Need a ride to the airport.')

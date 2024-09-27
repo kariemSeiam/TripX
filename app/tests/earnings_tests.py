@@ -57,6 +57,7 @@ def test_get_earnings(test_client, driver, trip):
     data = response.get_json()
     assert isinstance(data, list)
     assert len(data) > 0
+    assert any(e['trip_id'] == trip.id for e in data)
 
 def test_update_earning(test_client, driver, trip):
     earning = Earning(driver_id=driver.id, trip_id=trip.id, amount=20.50, currency='USD')

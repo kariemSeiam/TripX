@@ -20,6 +20,11 @@ def add_vehicle():
     if errors:
         return jsonify(errors), 400
 
+    # Check for existing vehicle with the same license plate
+    existing_vehicle = Vehicle.query.filter_by(license_plate=data['license_plate']).first()
+    if existing_vehicle:
+        return jsonify({"message": "A vehicle with this license plate already exists."}), 400
+
     vehicle = Vehicle(
         user_id=user_id,
         make=data['make'],
@@ -28,7 +33,7 @@ def add_vehicle():
         license_plate=data['license_plate'],
         color=data.get('color'),
         vehicle_type=data.get('vehicle_type'),
-        vehicle_photo_urls=data.get('vehicle_photo_urls')
+        photo_urls_list=data.get('vehicle_photo_urls', [])
     )
     db.session.add(vehicle)
     db.session.commit()
@@ -62,7 +67,7 @@ def update_vehicle(vehicle_id):
     vehicle.license_plate = data.get('license_plate', vehicle.license_plate)
     vehicle.color = data.get('color', vehicle.color)
     vehicle.vehicle_type = data.get('vehicle_type', vehicle.vehicle_type)
-    vehicle.vehicle_photo_urls = data.get('vehicle_photo_urls', vehicle.vehicle_photo_urls)
+    vehicle.photo_urls_list = data.get('vehicle_photo_urls', vehicle.photo_urls_list)  # Use the property setter
 
     db.session.commit()
     return jsonify({"message": "Vehicle updated successfully"}), 200

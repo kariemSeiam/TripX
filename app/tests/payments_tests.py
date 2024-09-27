@@ -4,8 +4,18 @@ from app.extensions import db
 from app.models import Driver, Payment
 from flask_jwt_extended import create_access_token
 
+import pytest
+
 @pytest.fixture(scope='module')
 def test_client():
+    flask_app = create_app('testing')
+
+    with flask_app.test_client() as testing_client:
+        with flask_app.app_context():
+            db.create_all()
+            yield testing_client
+            db.drop_all()
+    """Fixture for setting up a test client."""
     flask_app = create_app('testing')
 
     with flask_app.test_client() as testing_client:
@@ -16,6 +26,7 @@ def test_client():
 
 @pytest.fixture
 def driver():
+    """Fixture for creating a test driver."""
     driver = Driver(username='testdriver', email='testdriver@example.com', phone_number='+1234567890')
     driver.set_password('password')
     db.session.add(driver)
@@ -23,10 +34,12 @@ def driver():
     return driver
 
 def get_jwt_headers(driver):
+    """Helper function to get JWT headers."""
     token = create_access_token(identity=driver.id)
     return {'Authorization': f'Bearer {token}'}
 
 def test_create_payment(test_client, driver):
+    """Test case for creating a payment."""
     headers = get_jwt_headers(driver)
     data = {
         'amount': 100.00,
@@ -39,6 +52,7 @@ def test_create_payment(test_client, driver):
     assert 'payment_id' in data
 
 def test_get_payments(test_client, driver):
+    """Test case for retrieving payments."""
     payment = Payment(driver_id=driver.id, amount=100.00, currency='USD')
     db.session.add(payment)
     db.session.commit()
@@ -51,6 +65,7 @@ def test_get_payments(test_client, driver):
     assert len(data) > 0
 
 def test_update_payment(test_client, driver):
+    """Test case for updating a payment."""
     payment = Payment(driver_id=driver.id, amount=100.00, currency='USD')
     db.session.add(payment)
     db.session.commit()
@@ -65,6 +80,7 @@ def test_update_payment(test_client, driver):
     assert data['message'] == 'Payment updated successfully'
 
 def test_delete_payment(test_client, driver):
+    """Test case for deleting a payment."""
     payment = Payment(driver_id=driver.id, amount=100.00, currency='USD')
     db.session.add(payment)
     db.session.commit()

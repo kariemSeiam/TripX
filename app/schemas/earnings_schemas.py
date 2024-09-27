@@ -8,6 +8,6 @@ class EarningSchema(Schema):
     status = fields.Str(validate=validate.OneOf(['pending', 'completed', 'failed']))
 
 class EarningUpdateSchema(Schema):
-    amount = fields.Float()
+    amount = fields.Float(validate=validate.Range(min=0))
     currency = fields.Str(validate=validate.Length(equal=3))
     status = fields.Str(validate=validate.OneOf(['pending', 'completed', 'failed']))

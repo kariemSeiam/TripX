@@ -6,5 +6,5 @@ class RequestSchema(Schema):
 
 class RequestUpdateSchema(Schema):
     request_type = fields.Str(validate=validate.Length(min=1))
-    status = fields.Str(validate=validate.OneOf(['pending', 'completed', 'cancelled']))
+    status = fields.Str(validate=validate.OneOf(['pending', 'completed', 'cancelled', 'in_progress']))
     details = fields.Str()

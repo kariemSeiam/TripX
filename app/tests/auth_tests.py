@@ -2,9 +2,19 @@ import pytest
 from app import create_app
 from app.extensions import db
 from app.models import User
+from app.utils.auth_utils import generate_verification_token, generate_password_reset_token
+
+import pytest
 
 @pytest.fixture(scope='module')
 def test_client():
+    flask_app = create_app('testing')
+
+    with flask_app.test_client() as testing_client:
+        with flask_app.app_context():
+            db.create_all()
+            yield testing_client
+            db.drop_all()
     flask_app = create_app('testing')
 
     with flask_app.test_client() as testing_client:

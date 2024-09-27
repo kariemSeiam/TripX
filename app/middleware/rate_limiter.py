@@ -6,7 +6,9 @@ class RateLimiter:
         self.limiter = Limiter(
             get_remote_address,
             app=app,
-            default_limits=[app.config['RATE_LIMIT']]
+            default_limits=["200 per day", "50 per hour"],
+            storage_uri="memory://",
+            strategy="fixed-window"
         )
 
     def init_app(self, app):

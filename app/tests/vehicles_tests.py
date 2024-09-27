@@ -4,10 +4,19 @@ from app.extensions import db
 from app.models import User, Vehicle
 from flask_jwt_extended import create_access_token
 
+import pytest
+
 @pytest.fixture(scope='module')
 def test_client():
     flask_app = create_app('testing')
 
+    with flask_app.test_client() as testing_client:
+        with flask_app.app_context():
+            db.create_all()
+            yield testing_client
+            db.drop_all()
+    flask_app = create_app('testing')
+    
     with flask_app.test_client() as testing_client:
         with flask_app.app_context():
             db.create_all()
@@ -25,6 +34,12 @@ def user():
 def get_jwt_headers(user):
     token = create_access_token(identity=user.id)
     return {'Authorization': f'Bearer {token}'}
+
+def test_unauthorized_access(test_client):
+    response = test_client.get('/vehicles')
+    assert response.status_code == 401
+    data = response.get_json()
+    assert data['msg'] == 'Missing Authorization Header'
 
 def test_add_vehicle(test_client, user):
     headers = get_jwt_headers(user)

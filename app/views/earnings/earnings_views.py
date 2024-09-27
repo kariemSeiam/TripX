@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from app.models import Earning, Driver, Trip
 from app.extensions import db
 from app.schemas.earnings_schemas import EarningSchema, EarningUpdateSchema
@@ -32,7 +32,12 @@ def create_earning():
         status=data.get('status', 'pending')
     )
     db.session.add(new_earning)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error creating earning: {e}")
+        return jsonify({"message": "Internal server error"}), 500
     return jsonify({"message": "Earning created successfully", "earning_id": new_earning.id}), 201
 
 @earnings_bp.route('/earnings', methods=['GET'])
